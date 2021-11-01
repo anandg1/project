@@ -1,0 +1,54 @@
+- name: "Mysql Installation"
+  apt:
+    update_cache: true     
+    name: 
+      - mysql-server
+      - python3-pymysql
+    state: present
+      
+- name: "Restarting/Enabling Mysql Service"
+  service:
+    name: mysql
+    state: restarted
+    enabled: true
+
+- name: "Sets the root password"
+  ignore_errors: true
+  mysql_user:
+    login_user: "root"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    host: 'localhost'
+    login_password: ""
+    user: "root"
+    password: "{{ mysql_root_password }}"
+    host_all: true
+
+- name: "Removing test database"  
+  mysql_db:
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}"
+    name: "test"
+    state: absent
+
+- name : "Removing anonymous users"
+  mysql_user:
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}"
+    user: ""
+    state: absent
+    host_all: true
+
+- name: "Creating new database"
+  mysql_db:
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_database_name }}"
+    state: present
+
+- name: "Creating a new user"
+  mysql_user:
+    login_user: "root"
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_database_user_name }}"
+    password: "{{ mysql_database_user_password }}"
+    priv: '{{ mysql_database_name }}.*:ALL'

@@ -1,0 +1,131 @@
+---
+- name: "Creating InfraStructure And Dynamic Inventory"
+  hosts: localhost
+  vars:
+    proj_dir: terraform/
+
+  tasks:
+    
+ ###################################################################
+ # Terraform infrastructure Creation
+ ###################################################################
+
+    - name: "init the terraform"
+      shell: terraform init 
+      args: 
+        chdir: "{{ proj_dir }}" 
+        creates: "{{ proj_dir }}/.terraform/" 
+
+    - name: "Creating AWS instances with Terraform"
+      terraform:
+        project_path: "{{ proj_dir }}"
+        state: present
+      register: op
+
+    # - debug: var=op
+
+  ####################################################################################################
+  # Pausing for a few minutes to get the instances ready(Aborting can result in ssh connection error)
+  ####################################################################################################
+
+    - name: Pause for 3 minutes for instances to get ready
+      pause:
+        minutes: 3
+
+    
+ ###################################################################
+ # Dynamic Inventory Creation
+ ###################################################################
+    - name: "Creating host for webserver"
+      add_host:
+        hostname: proxy_host
+        ansible_host: "{{ op.outputs.public_ip_web.value }}"
+        ansible_user: ubuntu
+        ansible_port: 22
+        ansible_private_key_file: "{{ proj_dir }}/tfkey"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+    
+ ###################################################################
+ # Dynamic Inventory Creation
+ ###################################################################
+    - name: "Creating host for database"
+      add_host:
+        hostname: database_host
+        ansible_host: "{{ op.outputs.public_ip_db.value }}"
+        ansible_user: ubuntu
+        ansible_port: 22
+        ansible_private_key_file: "{{ proj_dir }}/tfkey"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+ ###################################################################
+ # Dynamic Inventory Creation
+ ###################################################################
+    - name: "Creating host for flask"
+      add_host:
+        hostname: flask_host
+        ansible_host: "{{ op.outputs.public_ip_flask.value }}"
+        ansible_user: ubuntu
+        ansible_port: 22
+        ansible_private_key_file: "{{ proj_dir }}/tfkey"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+    - name: "Creating host for flask(private)"
+      add_host:
+        hostname: flask_host_private
+        ansible_host: "{{ op.outputs.private_ip_flask.value }}"
+        ansible_user: ubuntu
+        ansible_port: 22
+        ansible_private_key_file: "{{ proj_dir }}/tfkey"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+ ###################################################################
+ # Deployment of Nginx reverse proxy server
+ ###################################################################
+
+
+- name: "Configuring Reverse Proxy Server"
+  become: true
+  hosts: proxy_host
+  vars:
+    nginx_port: 80
+    nginx_owner: "www-data"
+    nginx_group: "www-data"
+    nginx_content: "ansible_nginx_playbook/"
+
+  tasks:
+    - import_tasks: ansible_nginx_playbook/main.yml
+
+
+
+ ###################################################################
+ # Deployment of Flask
+ ###################################################################
+
+- name: "Deploying FlaskApplication"
+  become: true
+  hosts: flask_host
+  vars:
+    app_user: "flaskapp"
+    flaskapp_content: "ansible_flask_playbook/"
+  
+  tasks:
+    - import_tasks: ansible_flask_playbook/main.yml
+
+
+
+ #######################################################################
+ # Deployment of Database server
+ #######################################################################
+
+- name: "Configuring MySQL Server"
+  become: true
+  hosts: database_host
+  vars:
+    mysql_root_password: "password"
+    mysql_database_name: "mydb"
+    mysql_database_user_name: "myuser"
+    mysql_database_user_password: "mypassword"
+
+  tasks:
+    - import_tasks: ansible_db_playbook/main.yml 
+

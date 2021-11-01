@@ -1,0 +1,31 @@
+---   
+- name: "Installing Nginx Reverse Proxy"
+  apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: "Generating nginx conf from template"
+  template:
+    src: "{{ nginx_content }}template/nginx.conf.tmpl"
+    dest: /etc/nginx/nginx.conf
+
+- name: "Setting Flask Host Variable"
+  set_fact:
+    nginx_host: "{{ hostvars['flask_host_private']['ansible_host'] }}"
+
+- name: "Delete existing default vhost"
+  file:
+    path: /etc/nginx/sites-available/default
+    state: absent
+
+- name: "Generating new default vhost from template"
+  template:
+    src: "{{ nginx_content }}template/vhost.conf.tmpl"
+    dest: /etc/nginx/sites-available/default
+
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

@@ -1,0 +1,47 @@
+---
+- name: "Creating Python and pip3"
+  apt:
+    name:
+      - python3
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: "Creating Application User {{ app_user }}"
+  user:
+    name: "{{ app_user }}"
+    create_home: true
+    home: /var/flaskapp/
+
+- name: "Creating Application User {{ app_user }} home directory"
+  file:
+    path: /var/flaskapp/
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: 0750
+
+- name: "Uploading Application Content to app Directory"
+  copy:
+    src: "{{ flaskapp_content }}"
+    dest: /var/flaskapp/
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+
+- name: "Installing Flaskapp requirements.txt"
+  pip:
+    requirements: /var/flaskapp/requirements.txt
+    
+
+- name: "Creating Systemd Unit File for {{ app_user }}"
+  copy:
+    src: flaskapp.service
+    dest: /etc/systemd/system/flaskapp.service
+    owner: "root"
+    group: "root"
+
+- name: "Systemd daemon reload {{ app_user }}"
+  systemd: 
+    state: restarted 
+    name: flaskapp.service 
+    daemon_reload: true

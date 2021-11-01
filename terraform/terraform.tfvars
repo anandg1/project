@@ -1,0 +1,8 @@
+region       = "us-east-2"
+project_name = "my-project"
+vpc_cidr     = "172.31.0.0/16"
+subnet_bit   = "2"                               
+ami          = "ami-0b9064170e32bde34"          
+type         = "t2.micro"
+access_key = ""
+secret_key = ""

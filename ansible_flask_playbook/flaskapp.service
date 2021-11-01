@@ -1,0 +1,11 @@
+[Unit]
+Description=Flask Application
+After=network.target
+
+[Service]
+User=flaskapp
+WorkingDirectory=/var/flaskapp/
+ExecStart=/usr/bin/python3 app.py
+
+[Install]
+WantedBy=multi-user.target
