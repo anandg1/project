@@ -1,6 +1,12 @@
 # PROJECT
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)]()
 
+Here I'm going to build an AWS infra with 3 Ec2 instances in different subnets using terrafrom and provisioning them using ansible. One of the instances will be a flask application, the other a mysql database and the last one an nginx webserver which acts as reverse proxy to the flask application.
+
+## Features:
+
+Only need to trigger an ansible playbook at the beginning. All the other tasks would be done automatically by it.
+
 ## Pre-requesites:
 
 - AWS Command Line Interface installed and configured on the localhost.
