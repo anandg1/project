@@ -1,7 +1,7 @@
 # PROJECT
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)]()
 
-Here I'm going to build an AWS infra with 3 Ec2 instances in different subnets using terrafrom and provisioning them using ansible. One of the instances will be a flask application, the other a mysql database and the last one an nginx webserver which acts as reverse proxy to the flask application.
+Here I'm going to build an AWS infra with 3 Ec2 instances in different subnets using terraform and provisioning them using ansible. One of the instances will be a flask application, the other a mysql database and the last one an nginx webserver which acts as reverse proxy to the flask application.
 
 ## Features:
 
